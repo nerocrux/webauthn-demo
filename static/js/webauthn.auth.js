@@ -20,6 +20,36 @@ $('#register').submit(function(event) {
     })
 })
 
+/* Handle for login form submission */
+$('#login').submit(function(event) {
+    event.preventDefault();
+
+    let username = this.username.value;
+
+    if(!username) {
+        alert('Username is missing!')
+        return
+    }
+
+    getGetAssertionChallenge({username})
+        .then((response) => {
+            let publicKey = preformatGetAssertReq(response);
+            return navigator.credentials.get({ publicKey })
+        })
+        .then((response) => {
+            let getAssertionResponse = publicKeyCredentialToJSON(response);
+            return sendWebAuthnResponse(getAssertionResponse)
+        })
+        .then((response) => {
+            if(response.status === 'ok') {
+                loadMainContainer()   
+            } else {
+                alert(`Server responed with error. The message is: ${response.message}`);
+            }
+        })
+        .catch((error) => alert(error))
+})
+
 let getMakeCredentialsChallenge = (formBody) => {
     return fetch('/webauthn/register', {
         method: 'POST',
@@ -55,36 +85,6 @@ let sendWebAuthnResponse = (body) => {
         return response
     })
 }
-
-/* Handle for login form submission */
-$('#login').submit(function(event) {
-    event.preventDefault();
-
-    let username = this.username.value;
-
-    if(!username) {
-        alert('Username is missing!')
-        return
-    }
-
-    getGetAssertionChallenge({username})
-        .then((response) => {
-            let publicKey = preformatGetAssertReq(response);
-            return navigator.credentials.get({ publicKey })
-        })
-        .then((response) => {
-            let getAssertionResponse = publicKeyCredentialToJSON(response);
-            return sendWebAuthnResponse(getAssertionResponse)
-        })
-        .then((response) => {
-            if(response.status === 'ok') {
-                loadMainContainer()   
-            } else {
-                alert(`Server responed with error. The message is: ${response.message}`);
-            }
-        })
-        .catch((error) => alert(error))
-})
 
 let getGetAssertionChallenge = (formBody) => {
     return fetch('/webauthn/login', {
