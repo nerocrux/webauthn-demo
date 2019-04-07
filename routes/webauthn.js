@@ -86,7 +86,7 @@ router.post('/response', (request, response) => {
 
     } else if(webauthnResp.response.authenticatorData !== undefined) {
         /* This is get assertion */
-		
+        result = utils.verifyAuthenticatorAssertionResponse(webauthnResp, database[request.session.username].authenticators);		
         
     } else {
         response.json({
@@ -105,6 +105,36 @@ router.post('/response', (request, response) => {
         })
     }
 
+})
+
+router.post('/login', (request, response) => {
+    if(!request.body || !request.body.username) {
+        response.json({
+            'status': 'failed',
+            'message': 'Request missing username field!'
+        })
+
+        return
+    }
+
+    let username = request.body.username;
+
+    if(!database[username] || !database[username].registered) {
+        response.json({
+            'status': 'failed',
+            'message': `User ${username} does not exist!`
+        })
+
+        return
+    }
+
+    let getAssertion    = utils.generateServerGetAssertion(database[username].authenticators)
+    getAssertion.status = 'ok'
+
+    request.session.challenge = getAssertion.challenge;
+    request.session.username  = username;
+
+    response.json(getAssertion)
 })
 
 module.exports = router;
