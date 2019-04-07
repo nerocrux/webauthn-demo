@@ -14,9 +14,16 @@ $('#register').submit(function(event) {
         let publicKey = preformatMakeCredReq(response)
         return navigator.credentials.create({publicKey})
 	})
-    .then((newCred) => {
+    .then((response) => {
         let makeCredResponse = publicKeyCredentialToJSON(newCred);
-        console.log(makeCredResponse)
+        return sendWebAuthnResponse(makeCredResponse)
+    })
+    .then((response) => {
+		if(response.status === 'ok') {
+            loadMainContainer()   
+        } else {
+            alert(`Server responed with error. The message is: ${response.message}`);
+        }
     })
 })
 
