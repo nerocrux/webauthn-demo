@@ -15,7 +15,7 @@ $('#register').submit(function(event) {
         return navigator.credentials.create({publicKey})
 	})
     .then((response) => {
-        let makeCredResponse = publicKeyCredentialToJSON(newCred);
+        let makeCredResponse = publicKeyCredentialToJSON(response);
         return sendWebAuthnResponse(makeCredResponse)
     })
     .then((response) => {
